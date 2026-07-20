@@ -155,21 +155,10 @@
   .btn.primary{ background: var(--honey); border-color: var(--honey); color: #241d05; }
   .btn.primary:hover{ border-color: var(--honey); }
 
-  /* Universal focus ring for keyboard / switch users */
+  /* Universal focus ring for keyboard users */
   button:focus-visible, .cell:focus-visible, .piece-btn:focus-visible{
     outline: 0.1875rem solid var(--focus);
     outline-offset: 0.125rem;
-  }
-  .cell.scan-highlight{
-    stroke: var(--focus) !important;
-    stroke-width: 5;
-    outline: none !important;
-    box-shadow: none !important;
-  }
-  .scan-highlight:not(.cell){
-    outline: 0.25rem solid var(--focus) !important;
-    outline-offset: 0.125rem;
-    box-shadow: 0 0 0 0.375rem rgba(47,140,255,0.25);
   }
 
   .side-panel{
@@ -539,9 +528,6 @@ function loadLevel(idx){
   document.getElementById('winBanner').classList.remove('show');
   document.getElementById('pieceArea').style.display = '';
   document.getElementById('boardPanel').classList.remove('win');
-  scanState.index = 0;
-  scanState.boardGroupActive = false;
-  rebuildScanList();
 }
 
 
@@ -611,7 +597,6 @@ function renderBoard(){
     svg.appendChild(fo);
   });
   fitBoardSvg();
-  rebuildScanList();
 }
 
 function fitBoardSvg(){
@@ -688,7 +673,6 @@ function renderTray(){
     div.className = 'empty-tray';
     div.textContent = 'All pieces placed!';
     tray.appendChild(div);
-    rebuildScanList();
     return;
   }
   unplaced.forEach((piece, idx)=>{
@@ -706,7 +690,6 @@ function renderTray(){
 
     tray.appendChild(accessBtn);
   });
-  rebuildScanList();
 }
 
 function updateControls(){
@@ -717,8 +700,6 @@ function updateControls(){
 
 function selectPiece(id){
   state.selectedId = (state.selectedId === id) ? null : id;
-  scanState.index = 0;
-  scanState.boardGroupActive = false;
   renderTray();
   updateControls();
 }
@@ -769,8 +750,6 @@ function onCellClick(q,r){
   piece.anchor = {q,r};
   cells.forEach(([cq,cr])=> state.occupied.set(key(cq,cr), piece.id));
   state.selectedId = null;
-  scanState.index = 0;
-  scanState.boardGroupActive = false;
   renderBoard();
   renderTray();
   updateControls();
@@ -785,8 +764,6 @@ function pickUpPiece(pieceId){
   piece.placed = false;
   piece.anchor = null;
   state.selectedId = pieceId;
-  scanState.index = 0;
-  scanState.boardGroupActive = false;
   renderBoard();
   renderTray();
   updateControls();
@@ -839,119 +816,8 @@ function checkWin(){
     document.getElementById('nextLevelBtn').style.display =
       (state.levelIdx < LEVELS.length-1) ? 'inline-block' : 'none';
     announce('Hive complete. Every cell filled.');
-    rebuildScanList();
   }
 }
-
-
-
-const scanState = {
-  items: [],
-  index: -1,
-  timer: null,
-  speed: 1200,
-  boardGroupActive: false
-};
-
-function rebuildScanList(){
-  const items = [];
-  const boardSvgWrap = document.getElementById('boardSvgWrap');
-
-  if(state.selectedId === null){
-
-    document.querySelectorAll('#tray .piece-btn').forEach(el=>{
-      if(el.offsetParent !== null) items.push(el);
-    });
-    document.querySelectorAll('#boardSvg .cell.filled').forEach(el=>{
-      if(el.offsetParent !== null) items.push(el);
-    });
-  } else if(!scanState.boardGroupActive){
-
-    ['#rotateBtn', '#flipBtn'].forEach(sel=>{
-      const el = document.querySelector(sel);
-      if(el && !el.disabled && el.offsetParent !== null) items.push(el);
-    });
-    items.push(boardSvgWrap);
-  } else {
-
-    document.querySelectorAll('#boardSvg .cell:not(.filled)').forEach(el=>{
-      if(el.offsetParent !== null) items.push(el);
-    });
-  }
-
-  scanState.items = items;
-  if(scanState.index >= items.length) scanState.index = items.length ? 0 : -1;
-  if(scanState.index < 0 && items.length) scanState.index = 0;
-  highlightScanItem();
-}
-
-function clearScanHighlight(){
-  document.querySelectorAll('.scan-highlight').forEach(el=> el.classList.remove('scan-highlight'));
-}
-
-function highlightScanItem(){
-  clearScanHighlight();
-  clearPreview();
-  if(scanState.index < 0 || scanState.index >= scanState.items.length) return;
-  const el = scanState.items[scanState.index];
-  el.classList.add('scan-highlight');
-  el.scrollIntoView({block:'nearest', inline:'nearest', behavior:'smooth'});
-
-  if(el.classList && el.classList.contains('cell') && state.selectedId !== null){
-    const q = parseInt(el.dataset.q, 10);
-    const r = parseInt(el.dataset.r, 10);
-    onCellHover(q, r);
-  }
-  const label = el.getAttribute('aria-label') || el.textContent.trim() || 'item';
-  announce('Highlighted: ' + label);
-}
-
-function scanAdvance(){
-  if(scanState.items.length===0) return;
-  const next = (scanState.index+1) % scanState.items.length;
-  if(next === 0 && scanState.boardGroupActive){
-
-    scanState.boardGroupActive = false;
-    scanState.index = 0;
-    rebuildScanList();
-    return;
-  }
-  scanState.index = next;
-  highlightScanItem();
-}
-
-function scanSelect(){
-  if(scanState.index < 0 || scanState.index >= scanState.items.length) return;
-  const el = scanState.items[scanState.index];
-
-  el.dispatchEvent(new MouseEvent('click', {bubbles:true, cancelable:true}));
-  setTimeout(rebuildScanList, 0);
-}
-
-function startAutoScanTimer(){
-  stopAutoScanTimer();
-  scanState.timer = setInterval(scanAdvance, scanState.speed);
-}
-function stopAutoScanTimer(){
-  if(scanState.timer){ clearInterval(scanState.timer); scanState.timer = null; }
-}
-
-document.getElementById('boardSvgWrap').addEventListener('click', (e)=>{
-  if(e.target !== e.currentTarget) return; // ignore clicks that bubbled up from a cell
-  if(state.selectedId === null) return;
-  scanState.boardGroupActive = true;
-  scanState.index = 0;
-  rebuildScanList();
-});
-
-
-document.addEventListener('keydown', (e)=>{
-  if(e.code === 'Space'){
-    e.preventDefault();
-    scanSelect();
-  }
-});
-
 
 
 function wireAccessButton(innerId, handler){
@@ -971,19 +837,6 @@ wireAccessButton('nextLevelBtn', ()=>{
 });
 
 loadLevel(0);
-startAutoScanTimer();
-
-
-if(window.SquidlyAPI){
-  const applyDwellTime = (seconds)=>{
-    if(typeof seconds === 'number' && seconds > 0){
-      scanState.speed = seconds*1000;
-      startAutoScanTimer();
-    }
-  };
-  SquidlyAPI.getSettings('host/access/dwellTime', applyDwellTime);
-  SquidlyAPI.addSettingsListener('host/access/dwellTime', applyDwellTime);
-}
 </script>
 </body>
 </html>
