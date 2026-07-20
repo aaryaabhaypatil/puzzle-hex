@@ -4,6 +4,6 @@
     "subtitle": "A hex-fitting puzzle",
     "version": "1.0.0",
     "description": "Fit hexagon-shaped pieces onto a honeycomb board to match the target pattern, with dwell, switch scan, and eye gaze support via the Squidly access system.",
-    "author": "Aarya",
+    "author": "",
     "icon": ""
 }
