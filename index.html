@@ -6,13 +6,7 @@
 <title>HexNest — a hex-fitting puzzle</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-<!--
-  Defines the `access-button` custom element locally so dwell/switch/eye-gaze
-  wiring works during local dev (npx http-server, Live Server, etc).
-  Squidly injects its own copy of this when the app actually runs on the
-  platform; the guard inside squidly-access-lib.js (customElements.get check)
-  means this file is a no-op there instead of clashing with it.
--->
+
 <script type="module" src="./squidly-access-lib.js"></script>
 <style>
   :root{
@@ -39,16 +33,16 @@
     background: #000000;
     color: var(--text);
     font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-    min-height: 100vh;
     height: 100%;
+    overflow: hidden;
   }
   .wrap{
-    max-width: 67.5rem;
     margin: 0 auto;
-    min-height: 100vh;
+    height: 100vh;
     padding: 2rem 1.25rem;
     display: flex;
     flex-direction: column;
+    overflow: hidden;
   }
   .board-instructions{
     color: var(--text-dim);
@@ -58,20 +52,31 @@
 
   .game{
     display:grid;
-    grid-template-columns: 8.75rem 3.6fr 0.8fr;
-    grid-template-areas: "actions board side";
+    grid-template-columns: 20% 47% 33%;
+    grid-template-areas: "spacer board side";
     gap: 1rem;
     align-items: stretch;
     flex: 1;
     min-height: 0;
   }
+  .spacer{
+    grid-area: spacer;
+  }
+  .board-panel.win{
+    grid-column: 2 / -1;
+    margin-left: 2%;
+    margin-right: 2%;
+  }
   @media (max-width: 48.75rem){
     .game{
       grid-template-columns: 1fr;
       grid-template-areas:
-        "actions"
         "board"
         "side";
+    }
+    .spacer{ display: none; }
+    .board-panel.win{
+      grid-column: auto;
     }
   }
 
@@ -98,21 +103,147 @@
     0%,100%{ opacity: .5; }
     50%{ opacity: 1; }
   }
-  .board-side-actions{
-    grid-area: actions;
-    display:flex;
+
+
+  .grid-icon {
+    --border: 4px;
+    --gap: calc(1.25 * var(--border));
+    --shadow-color: #bfbfbfc5;
+
+    --icon-color: rgb(245, 244, 244);
+    --icon-color-hover: white;
+    --text: white;
+    --main: rgb(250, 70, 199);
+    --tab: rgb(200, 50, 150);
+    --main-hover: rgb(220, 66, 184);
+    --tab-hover: rgb(169, 22, 120);
+    --main-active: rgb(180, 54, 150);
+    --tab-active: rgb(150, 10, 100);
+    --tab-color: var(--tab);
+    --main-color: var(--main);
+    --outline-color: transparent;
+
+    width: 100%;
+    aspect-ratio: 1 / 1;
+    position: relative;
+    cursor: pointer;
+    color: var(--text);
+    display: block;
+    -webkit-user-drag: none;
+    border: none;
+    background: transparent;
+    padding: 0;
+    font-family: 'Inter', sans-serif;
+  }
+  .grid-icon[i-hidden]    { opacity: 0; pointer-events: none; }
+  .grid-icon[i-disabled]  { opacity: 0.4; pointer-events: none; }
+  .grid-icon[i-display-only] { pointer-events: none; }
+
+  .grid-icon .content {
+    position: absolute;
+    top: calc(var(--border) / 2);
+    left: calc(var(--border) / 2);
+    right: calc(var(--border) / 2);
+    bottom: calc(var(--border) / 2);
+    width: calc(100% - var(--border));
+    height: calc(100% - var(--border));
+    display: flex;
     flex-direction: column;
-    gap: 0.5rem;
-    width: 100%;
-    max-width: 8.75rem;
+    justify-content: center;
+    align-items: center;
+    user-select: none;
+    gap: 0.3em;
   }
-  .board-side-actions .action-btn{
+  .grid-icon .content .symbol {
     width: 100%;
-    background: var(--bad);
-    border-color: var(--bad);
+    height: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
   }
-  .board-side-actions .action-btn:hover{ border-color: #ff7a6b; }
-  .board-side-actions .action-label{ color: #FFFFFF; }
+  .grid-icon .content .symbol svg {
+    height: 100%;
+    max-width: 90%;
+  }
+  .grid-icon .content .display-value {
+    font-size: 1.2em;
+    font-weight: 300;
+    text-align: center;
+    max-width: 90%;
+    word-wrap: break-word;
+    color: var(--text);
+  }
+  .grid-icon .card-icon {
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    width: 100%; height: 100%;
+    filter: drop-shadow(2px 2px 4px var(--shadow-color));
+  }
+  .grid-icon .card-icon .outline {
+    fill: none;
+    stroke: var(--outline-color);
+  }
+  .grid-icon .card-icon .card {
+    fill: var(--main-color);
+    transition: fill 0.15s ease-in-out;
+  }
+  .grid-icon .card-icon .tab {
+    fill: var(--tab-color);
+    transition: fill 0.15s ease-in-out;
+  }
+  .grid-icon:hover, .grid-icon[hover] {
+    --tab-color: var(--tab-hover);
+    --main-color: var(--main-hover);
+    --outline-color: var(--outline);
+  }
+  .grid-icon:active {
+    --tab-color: var(--tab-active);
+    --main-color: var(--main-active);
+    --outline-color: var(--outline);
+    transform: scale(0.97);
+  }
+
+
+  .grid-icon.action {
+    --main:        hsla(11, 100%, 33%, 1);
+    --tab:         hsla(11, 100%, 25%, 1);
+    --main-hover:  hsla(11, 100%, 23%, 1);
+    --tab-hover:   hsla(11, 100%, 15%, 1);
+    --main-active: hsla(11,  96%, 18%, 1);
+    --tab-active:  hsla(11,  92%,  9%, 1);
+    --icon-color:  hsl(0, 5%, 96%);
+    --icon-color-hover: white;
+    --text:   white;
+    --outline: hsl(11, 100%, 15%);
+  }
+
+  .grid-icon.normal {
+    --main:        hsl(211, 100%, 83%);
+    --tab:         hsl(211,  70%, 62%);
+    --main-hover:  hsl(211,  95%, 66.4%);
+    --tab-hover:   hsl(211,  66.5%, 49.6%);
+    --main-active: hsl(211, 100%, 53.95%);
+    --tab-active:  hsl(211,  73.5%, 40.3%);
+    --icon-color:  hsl(211, 100%, 24.9%);
+    --icon-color-hover: hsl(211, 100%, 12.45%);
+    --text:   black;
+    --outline: hsl(211, 84%, 37.2%);
+  }
+
+
+  .grid-icon .symbol svg path,
+  .grid-icon .symbol svg rect,
+  .grid-icon .symbol svg circle,
+  .grid-icon .symbol svg polygon {
+    fill: var(--icon-color);
+    transition: fill 0.15s ease-in-out;
+  }
+  .grid-icon:hover .symbol svg path,
+  .grid-icon:hover .symbol svg rect,
+  .grid-icon:hover .symbol svg circle,
+  .grid-icon:hover .symbol svg polygon {
+    fill: var(--icon-color-hover);
+  }
   .board-svg-wrap{
     width: 100%;
     flex: 1;
@@ -121,7 +252,7 @@
     align-items:center;
     justify-content:center;
   }
-  svg.board{ display: block; }
+  svg.board{ display: block; width: 100%; height: 100%; }
   .cell{
     fill: var(--cell-empty);
     stroke: var(--cell-empty-line);
@@ -141,16 +272,22 @@
 
   .win-banner{
     display:none;
-    align-items:center; justify-content:space-between;
+    flex: 0 0 auto;
+    align-items:center; justify-content:center;
     gap:0.625rem; flex-wrap:wrap;
-    background: var(--bg-deep);
-    border: 0.09375rem solid var(--honey);
-    border-radius: 0.875rem;
-    padding: 1rem 1.125rem;
+    margin-top: 0.75rem;
   }
   .win-banner.show{ display:flex; }
-  .win-banner p{ margin:0; font-family:'Baloo 2',sans-serif; font-weight:700; font-size: 0.9375rem; }
   .win-actions{ display:flex; gap:0.5rem; }
+
+  .control-banner{
+    flex: 0 0 auto;
+    display:flex;
+    align-items:center; justify-content:center;
+    gap:0.625rem; flex-wrap:wrap;
+    margin-top: 0.75rem;
+  }
+  .control-banner.hide{ display:none; }
 
   .btn{
     font-family:'Inter',sans-serif; font-weight:600; font-size: 0.84375rem;
@@ -163,7 +300,7 @@
   .btn.primary{ background: var(--honey); border-color: var(--honey); color: #241d05; }
   .btn.primary:hover{ border-color: var(--honey); }
 
-  /* Universal focus ring for keyboard / switch users */
+
   button:focus-visible, .cell:focus-visible, .piece-btn:focus-visible{
     outline: 0.1875rem solid var(--focus);
     outline-offset: 0.125rem;
@@ -177,7 +314,11 @@
     padding: 0.75rem;
     display:flex;
     flex-direction: column;
-    justify-content: center;
+    justify-content: flex-start;
+    gap: 0.75rem;
+    overflow: hidden;
+    min-height: 0;
+    height: 100%;
   }
   .side-panel h2{
     font-family:'Baloo 2',sans-serif; font-size: 0.9375rem; margin: 0 0 0.1875rem;
@@ -188,40 +329,45 @@
     background: var(--panel-2);
     border-radius: 0.75rem;
     padding: 0.625rem;
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-height: 0;
   }
   .target-card h2{ display:flex; align-items:center; gap:0.375rem; }
   .target-card h2::before{ content:"🖼️"; font-size: 0.8125rem; }
   .target-svg-wrap{
     width: 100%;
-    max-width: 12.5rem;
+    max-width: 100%;
+    flex: 1;
+    min-height: 0;
     margin: 0.375rem auto 0;
     display:flex;
+    align-items:center;
     justify-content:center;
+    overflow: hidden;
   }
-  svg.target-board{ width: 100%; height: auto; }
+  svg.target-board{
+    width: auto;
+    height: 100%;
+    max-width: 100%;
+    border: 3px solid var(--honey);
+    border-radius: 0.75rem;
+    padding: 0.75rem 0;
+    box-sizing: border-box;
+  }
   .target-board polygon{ stroke: rgba(255,255,255,0.22); stroke-width: 1; }
 
-  .rotate-flip-row{
-    display:flex;
-    flex-direction: column;
-    gap: 0.5rem;
-    margin: 0.75rem auto 0;
-    width: 100%;
-    max-width: 100%;
-    min-width: 8.75rem;
-  }
-  .rotate-flip-row .action-btn{
-    width: 100%;
-    aspect-ratio: 1 / 1;
-    padding: 0.75rem 0.375rem;
-  }
-
   .tray-panel{
-    background: var(--panel);
+    background: var(--panel-2);
     border: 0.0625rem solid var(--line);
     border-radius: 1.125rem;
-    padding: 0.75rem 0.875rem;
-    margin-top: 0.875rem;
+    padding: 0.625rem;
+    flex: 1;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
   }
   .action-btn{
     background: var(--bg-deep);
@@ -242,16 +388,22 @@
 
   .tray{
     display:grid;
-    grid-template-columns: repeat(auto-fit, minmax(8.75rem, 1fr));
-    gap: 0.5rem;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-auto-rows: minmax(0, 1fr);
+    gap: 0.625rem;
+    height: 100%;
   }
   .piece-btn{
     background: var(--bg-deep);
     border: 0.125rem solid var(--line);
     border-radius: 0.75rem;
-    padding: 0.375rem;
+    padding: 0.5rem;
     cursor: pointer;
     display:flex; align-items:center; justify-content:center;
+    width: 100%;
+    height: 100%;
+    max-width: 100%;
+    max-height: 100%;
     aspect-ratio: 1 / 1;
     transition: border-color .12s ease, transform .12s ease;
     position: relative;
@@ -277,9 +429,6 @@
     text-align:center; color: var(--text-dim); font-size: 0.71875rem; margin-top: 1rem;
   }
 
-  /* Invisible accessible hit-target laid over each hex cell inside the SVG,
-     wrapped in access-button so Squidly's dwell / switch-scan / eye-gaze
-     can target individual cells the same way it targets normal buttons. */
   .cell-hit{
     width: 100%;
     height: 100%;
@@ -287,7 +436,7 @@
     display: block;
   }
 
-  /* ---------- Live region (visually hidden but announced) ---------- */
+
   .visually-hidden{
     position:absolute; width:0.0625rem; height:0.0625rem; overflow:hidden;
     clip: rect(0 0 0 0); white-space:nowrap; border:0; padding:0; margin:-0.0625rem;
@@ -297,65 +446,48 @@
 <body>
 <div class="wrap">
 
-  <!-- <p class="board-instructions" id="boardInstructions">Check the target pattern on the right, then tap a piece below and tap a cell to place it there. Rotate or flip a piece first if it doesn't fit, or tap a placed piece to pick it back up.</p> -->
+ 
 
   <div class="game">
-    <div class="board-side-actions">
-      <access-button access-group="controls" access-order="1">
-        <button class="action-btn exit-btn" id="exitBtn">
-          <span class="action-label">Exit</span>
-        </button>
-      </access-button>
-      <access-button access-group="controls" access-order="2">
-        <button class="action-btn" id="resetBtn">
-          <span class="action-label">Reset</span>
-        </button>
-      </access-button>
-    </div>
+    <div class="spacer" aria-hidden="true"></div>
 
     <div class="board-panel" id="boardPanel">
-        <div class="board-svg-wrap" id="boardSvgWrap" role="button" tabindex="-1" aria-label="Board. Activate to choose a cell.">
-          <svg class="board" id="boardSvg" viewBox="0 0 100 100"></svg>
-        </div>
+      <div class="board-svg-wrap" id="boardSvgWrap" role="button" tabindex="-1" aria-label="Board. Activate to choose a cell.">
+        <svg class="board" id="boardSvg" viewBox="0 0 100 100"></svg>
       </div>
 
-    <div class="side-panel">
-      <div class="target-card">
+      <div class="control-banner" id="controlBanner">
+        <access-button access-group="controls" access-order="3">
+          <button class="btn" id="rotateBtn" disabled>Rotate</button>
+        </access-button>
+        <access-button access-group="controls" access-order="4">
+          <button class="btn" id="flipBtn" disabled>Flip</button>
+        </access-button>
+      </div>
 
-        
+      <div class="win-banner" id="winBanner">
+        <div class="win-actions">
+          <access-button access-group="win" access-order="1">
+            <button class="btn" id="playAgainBtn">Play again</button>
+          </access-button>
+          <access-button access-group="win" access-order="2">
+            <button class="btn primary" id="nextLevelBtn">Next challenge</button>
+          </access-button>
+        </div>
+      </div>
+    </div>
+
+    <div class="side-panel" id="sidePanel">
+      <div class="target-card">
         <div class="target-svg-wrap">
           <svg class="target-board" id="targetSvg" viewBox="0 0 100 100"></svg>
         </div>
-        <div class="rotate-flip-row">
-          <access-button access-group="controls" access-order="3">
-            <button class="action-btn" id="rotateBtn" disabled>
-              <span class="action-label">Rotate</span>
-            </button>
-          </access-button>
-          <access-button access-group="controls" access-order="4">
-            <button class="action-btn" id="flipBtn" disabled>
-              <span class="action-label">Flip</span>
-            </button>
-          </access-button>
-        </div>
       </div>
-    </div>
-  </div>
 
-  <div class="tray-panel">
-    <div id="pieceArea">
-      <div class="tray" id="tray"></div>
-    </div>
-
-    <div class="win-banner" id="winBanner">
-      <p> Hive complete — every cell filled!</p>
-      <div class="win-actions">
-        <access-button access-group="win" access-order="1">
-          <button class="btn" id="playAgainBtn">Play again</button>
-        </access-button>
-        <access-button access-group="win" access-order="2">
-          <button class="btn primary" id="nextLevelBtn">Next challenge →</button>
-        </access-button>
+      <div class="tray-panel">
+        <div id="pieceArea" style="flex:1; min-height:0; display:flex; flex-direction:column;">
+          <div class="tray" id="tray"></div>
+        </div>
       </div>
     </div>
   </div>
@@ -367,6 +499,217 @@
 <div class="visually-hidden" id="srAnnounce" role="status" aria-live="polite"></div>
 
 <script>
+
+
+const AudioCtxClass = window.AudioContext || window.webkitAudioContext;
+let actx = null;
+let noiseBuffer = null;
+function ensureAudio(){
+  if(!actx){
+    actx = new AudioCtxClass();
+
+    const len = actx.sampleRate * 1;
+    noiseBuffer = actx.createBuffer(1, len, actx.sampleRate);
+    const data = noiseBuffer.getChannelData(0);
+    for(let i=0;i<len;i++) data[i] = Math.random()*2 - 1;
+  }
+  if(actx.state === 'suspended') actx.resume();
+  return actx;
+}
+
+
+function tone(freqStart, freqEnd, dur, type, gainPeak, delay){
+  type = type || 'sine';
+  gainPeak = gainPeak === undefined ? 0.2 : gainPeak;
+  delay = delay || 0;
+  if(freqEnd === undefined) freqEnd = freqStart;
+  const ctx = ensureAudio();
+  const t0 = ctx.currentTime + delay;
+  const osc = ctx.createOscillator();
+  const gain = ctx.createGain();
+  osc.type = type;
+  osc.frequency.setValueAtTime(freqStart, t0);
+  if(freqEnd !== freqStart) osc.frequency.exponentialRampToValueAtTime(Math.max(freqEnd,1), t0 + dur);
+  gain.gain.setValueAtTime(0.0001, t0);
+  gain.gain.linearRampToValueAtTime(gainPeak, t0 + 0.012);
+  gain.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
+  osc.connect(gain).connect(ctx.destination);
+  osc.start(t0);
+  osc.stop(t0 + dur + 0.03);
+}
+
+
+function noiseHit(dur, gainPeak, filterType, filterFreq, delay){
+  gainPeak = gainPeak === undefined ? 0.2 : gainPeak;
+  delay = delay || 0;
+  const ctx = ensureAudio();
+  const t0 = ctx.currentTime + delay;
+  const src = ctx.createBufferSource();
+  src.buffer = noiseBuffer;
+  const filter = ctx.createBiquadFilter();
+  filter.type = filterType || 'bandpass';
+  filter.frequency.setValueAtTime(filterFreq || 1000, t0);
+  const gain = ctx.createGain();
+  gain.gain.setValueAtTime(0.0001, t0);
+  gain.gain.linearRampToValueAtTime(gainPeak, t0 + 0.006);
+  gain.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
+  src.connect(filter).connect(gain).connect(ctx.destination);
+  src.start(t0);
+  src.stop(t0 + dur + 0.03);
+}
+
+function sfxSelect(){
+
+  tone(520, 980, 0.09, 'sine', 0.16);
+}
+function sfxDeselect(){
+
+  tone(500, 300, 0.09, 'sine', 0.10);
+}
+function sfxPickup(){
+
+  tone(700, 220, 0.11, 'square', 0.14);
+  noiseHit(0.05, 0.10, 'lowpass', 500, 0.01);
+}
+function sfxRotateFlip(){
+
+  noiseHit(0.035, 0.22, 'highpass', 3500, 0);
+  noiseHit(0.035, 0.16, 'highpass', 5000, 0.05);
+}
+function sfxPlace(){
+
+  tone(659.25, 659.25, 0.10, 'triangle', 0.22, 0);    
+  tone(830.61, 830.61, 0.10, 'triangle', 0.22, 0.08);   
+  tone(1046.5, 1046.5, 0.18, 'triangle', 0.24, 0.16);   
+}
+function sfxInvalid(){
+
+  noiseHit(0.22, 0.20, 'lowpass', 300, 0);
+  tone(196, 140, 0.22, 'sawtooth', 0.16, 0);
+  tone(207, 150, 0.22, 'sawtooth', 0.12, 0.02);
+}
+function sfxWin(){
+
+  const notes = [
+    [523.25,'triangle'], [659.25,'square'], [783.99,'triangle'],
+    [1046.5,'square'], [1318.5,'triangle']
+  ];
+  notes.forEach(([f,type],i)=> tone(f, f, 0.24, type, 0.20, i*0.11));
+}
+
+const hasSquidlyAPILogPrefix = '[HexNest sync]';
+let hasSquidlyAPI = false;
+let isApplyingRemote = false;
+let receivedRemoteOnce = false;
+
+function serializeState(){
+  return JSON.stringify({
+    levelIdx: state.levelIdx,
+    won: state.won,
+    selectedId: state.selectedId,
+    pieces: state.pieces.map(p => ({
+      rotation: p.rotation,
+      flip: p.flip,
+      placed: p.placed,
+      anchor: p.anchor
+    }))
+  });
+}
+
+function pushState(){
+  if(!hasSquidlyAPI || isApplyingRemote || !state) return;
+  try{
+    const payload = serializeState();
+    SquidlyAPI.firebaseSet('game/state', payload);
+    console.log(hasSquidlyAPILogPrefix, 'pushed game/state:', payload);
+  }catch(e){ console.warn(hasSquidlyAPILogPrefix, 'firebaseSet failed', e); }
+}
+
+function cellsForPlacedPiece(piece){
+  if(!piece.placed || !piece.anchor) return [];
+  return currentCells(piece).map(([dq,dr])=>[piece.anchor.q+dq, piece.anchor.r+dr]);
+}
+
+function rebuildOccupiedFromPieces(){
+  state.occupied = new Map();
+  state.pieces.forEach(piece=>{
+    cellsForPlacedPiece(piece).forEach(([cq,cr])=> state.occupied.set(key(cq,cr), piece.id));
+  });
+}
+
+function applyRemoteState(raw){
+  let data;
+  try{ data = JSON.parse(raw); } catch(e){ return; }
+  if(!data || typeof data.levelIdx !== 'number' || !Array.isArray(data.pieces)) return;
+
+  isApplyingRemote = true;
+  const levelChanged = !state || state.levelIdx !== data.levelIdx;
+  const wasWon = state ? state.won : false;
+
+  if(levelChanged){
+    loadLevel(data.levelIdx); 
+  }
+
+  data.pieces.forEach((pd,i)=>{
+    const piece = state.pieces[i];
+    if(!piece) return;
+    piece.rotation = pd.rotation;
+    piece.flip = pd.flip;
+    piece.placed = pd.placed;
+    piece.anchor = pd.anchor;
+  });
+  state.selectedId = (typeof data.selectedId === 'number' && state.pieces[data.selectedId]) ? data.selectedId : null;
+  rebuildOccupiedFromPieces();
+  state.won = !!data.won;
+
+  renderBoard();
+  renderTray();
+  updateControls();
+
+  updateWinUI(state.won);
+  if(state.won && !wasWon) sfxWin();
+  isApplyingRemote = false;
+}
+
+function initMultiplayerSync(){
+  const POLL_MS = 50;
+  const TIMEOUT_MS = 6000;
+  const startedAt = Date.now();
+
+  (function waitForApi(){
+    if(window.SquidlyAPI){
+      hasSquidlyAPI = true;
+      console.log(hasSquidlyAPILogPrefix, 'SquidlyAPI detected, starting synced mode');
+      const banner = document.getElementById('controlBanner');
+      if(banner) banner.style.display = 'none';
+      startSyncedMode();
+      return;
+    }
+    if(Date.now() - startedAt >= TIMEOUT_MS){
+      hasSquidlyAPI = false;
+      console.log(hasSquidlyAPILogPrefix, 'SquidlyAPI not found after', TIMEOUT_MS, 'ms — running single-player (local dev without the Squidly platform wrapper)');
+      loadLevel(0);
+      return;
+    }
+    setTimeout(waitForApi, POLL_MS);
+  })();
+}
+
+function startSyncedMode(){
+  SquidlyAPI.firebaseOnValue('game/state', (val)=>{
+    receivedRemoteOnce = true;
+    console.log(hasSquidlyAPILogPrefix, 'received game/state update:', val);
+    if(val) applyRemoteState(val);
+  });
+
+  setTimeout(()=>{
+    if(!state){
+      console.log(hasSquidlyAPILogPrefix, 'no existing shared state found, initializing level 0');
+      loadLevel(0);
+      pushState();
+    }
+  }, 900);
+}
 
 function hexCells(R){
   const cells=[];
@@ -533,9 +876,7 @@ function loadLevel(idx){
   renderTargetPreview(idx);
   renderTray();
   updateControls();
-  document.getElementById('winBanner').classList.remove('show');
-  document.getElementById('pieceArea').style.display = '';
-  document.getElementById('boardPanel').classList.remove('win');
+  updateWinUI(false);
 }
 
 
@@ -585,12 +926,7 @@ function renderBoard(){
     }
     svg.appendChild(poly);
 
-    // Squidly access-button overlay for this cell, sized to the hex's bounding box.
-    // Placed inside a foreignObject so it scales and moves with the SVG automatically.
-    // access-button already converts a native click on itself into an access-click
-    // event (see AccessButtonRoot), so we only listen for access-click here — adding
-    // a separate 'click' handler on the polygon underneath would fire the action twice
-    // for an ordinary mouse click.
+
     const hexW = size*Math.sqrt(3);
     const hexH = size*2;
     const fo = document.createElementNS(SVG_NS,'foreignObject');
@@ -606,26 +942,23 @@ function renderBoard(){
     cellAccessBtn.addEventListener('access-click', ()=> onCellClick(p.q, p.r));
     cellHit.addEventListener('mouseenter', ()=> onCellHover(p.q,p.r));
     cellHit.addEventListener('mouseleave', clearPreview);
+
+    cellAccessBtn.addEventListener('access-focus', ()=> onCellHover(p.q,p.r));
+    cellAccessBtn.addEventListener('access-blur', clearPreview);
+    cellHit.addEventListener('focus', ()=> onCellHover(p.q,p.r));
+    cellHit.addEventListener('blur', clearPreview);
+    new MutationObserver(muts=>{
+      for(const m of muts){
+        if(m.attributeName === 'hover' || m.attributeName === 'i-hover'){
+          if(cellAccessBtn.hasAttribute(m.attributeName)) onCellHover(p.q,p.r);
+          else clearPreview();
+        }
+      }
+    }).observe(cellAccessBtn, {attributes:true, attributeFilter:['hover','i-hover']});
+
     svg.appendChild(fo);
   });
-  fitBoardSvg();
 }
-
-function fitBoardSvg(){
-  if(!state || !state.boardContentW) return;
-  const wrap = document.getElementById('boardSvgWrap');
-  const svg = document.getElementById('boardSvg');
-  const boxW = wrap.clientWidth;
-  const boxH = wrap.clientHeight;
-  if(boxW <= 0 || boxH <= 0) return;
-  const scale = Math.min(boxW / state.boardContentW, boxH / state.boardContentH);
-  const fitW = state.boardContentW * scale;
-  const fitH = state.boardContentH * scale;
-  svg.style.width = fitW + 'px';
-  svg.style.height = fitH + 'px';
-}
-
-window.addEventListener('resize', ()=> fitBoardSvg());
 
 function renderTargetPreview(idx){
   const lvl = LEVELS[idx];
@@ -693,9 +1026,7 @@ function renderTray(){
     btn.setAttribute('aria-label', `Piece ${piece.id+1}${state.selectedId===piece.id ? ', selected' : ''}`);
     btn.appendChild(renderPieceSvg(piece, 16));
 
-    // Squidly access-button wrapper: lets dwell / switch scan / eye gaze (and
-    // ordinary mouse click, which access-button forwards to access-click) select
-    // this piece. No separate 'click' listener on btn — that would double-fire.
+
     const accessBtn = document.createElement('access-button');
     accessBtn.setAttribute('access-group', 'tray');
     accessBtn.setAttribute('access-order', String(idx+1));
@@ -710,25 +1041,33 @@ function updateControls(){
   const has = state.selectedId !== null;
   document.getElementById('rotateBtn').disabled = !has;
   document.getElementById('flipBtn').disabled = !has;
+  showControlIcons();
 }
 
 function selectPiece(id){
-  state.selectedId = (state.selectedId === id) ? null : id;
+  const wasSelected = state.selectedId === id;
+  state.selectedId = wasSelected ? null : id;
+  if(wasSelected) sfxDeselect(); else sfxSelect();
   renderTray();
   updateControls();
+  pushState();
 }
 
 function rotateSelected(){
   if(state.selectedId===null) return;
   const piece = state.pieces[state.selectedId];
   piece.rotation = (piece.rotation+1)%6;
+  sfxRotateFlip();
   renderTray();
+  pushState();
 }
 function flipSelected(){
   if(state.selectedId===null) return;
   const piece = state.pieces[state.selectedId];
   piece.flip = !piece.flip;
+  sfxRotateFlip();
   renderTray();
+  pushState();
 }
 
 function cellSetHas(q,r){
@@ -750,12 +1089,14 @@ function onCellClick(q,r){
     return;
   }
   if(state.selectedId===null){
+    sfxDeselect();
     announce('Select a piece from the tray first.');
     return;
   }
   const {cells, valid} = tryCellsFor(state.selectedId, q, r);
   if(!valid){
     flashInvalid(q,r);
+    sfxInvalid();
     showToast("Doesn't fit there — try rotating or flipping it.");
     return;
   }
@@ -764,9 +1105,11 @@ function onCellClick(q,r){
   piece.anchor = {q,r};
   cells.forEach(([cq,cr])=> state.occupied.set(key(cq,cr), piece.id));
   state.selectedId = null;
+  sfxPlace();
   renderBoard();
   renderTray();
   updateControls();
+  pushState();
   checkWin();
 }
 
@@ -778,9 +1121,11 @@ function pickUpPiece(pieceId){
   piece.placed = false;
   piece.anchor = null;
   state.selectedId = pieceId;
+  sfxPickup();
   renderBoard();
   renderTray();
   updateControls();
+  pushState();
 }
 
 function flashInvalid(q,r){
@@ -821,23 +1166,110 @@ function clearPreview(){
   });
 }
 
+function doPlayAgain(){
+  loadLevel(state.levelIdx);
+  pushState();
+}
+function doNextLevel(){
+  if(state.levelIdx < LEVELS.length-1){
+    loadLevel(state.levelIdx+1);
+    pushState();
+  }
+}
+
+let controlIconKeys = [];
+function clearControlIcons(){
+  if(hasSquidlyAPI){
+    controlIconKeys.forEach(k=>{
+      try{ SquidlyAPI.removeIcon(k); }catch(e){}
+    });
+  }
+  controlIconKeys = [];
+}
+function showControlIcons(){
+  if(!hasSquidlyAPI || !state || state.won) return;
+  clearControlIcons();
+  const hasSel = state.selectedId !== null;
+  controlIconKeys.push(SquidlyAPI.setIcon(1, 0, {
+    symbol: "refresh",
+    displayValue: "Rotate",
+    type: "normal",
+    disabled: !hasSel
+  }, ()=> rotateSelected()));
+  controlIconKeys.push(SquidlyAPI.setIcon(2, 0, {
+    symbol: "flip",
+    displayValue: "Flip",
+    type: "normal",
+    disabled: !hasSel
+  }, ()=> flipSelected()));
+}
+
+let winIconKeys = [];
+function clearWinIcons(){
+  if(hasSquidlyAPI){
+    winIconKeys.forEach(k=>{
+      try{ SquidlyAPI.removeIcon(k); }catch(e){}
+    });
+  }
+  winIconKeys = [];
+}
+function showWinIcons(){
+  if(!hasSquidlyAPI) return;
+  clearWinIcons();
+  winIconKeys.push(SquidlyAPI.setIcon(1, 0, {
+    symbol: "refresh",
+    displayValue: "Play again",
+    type: "normal"
+  }, ()=> doPlayAgain()));
+  if(state.levelIdx < LEVELS.length-1){
+    winIconKeys.push(SquidlyAPI.setIcon(2, 0, {
+      symbol: "next",
+      displayValue: "Next Level",
+      type: "action"
+    }, ()=> doNextLevel()));
+  }
+}
+
+function updateWinUI(won){
+  const winBanner = document.getElementById('winBanner');
+  const sidePanel = document.getElementById('sidePanel');
+  const boardPanel = document.getElementById('boardPanel');
+  const controlBanner = document.getElementById('controlBanner');
+  if(won){
+    sidePanel.style.display = 'none';
+    controlBanner.classList.add('hide');
+    boardPanel.classList.add('win');
+    clearControlIcons();
+    if(hasSquidlyAPI){
+
+      winBanner.classList.remove('show');
+      showWinIcons();
+    } else {
+
+      winBanner.classList.add('show');
+      document.getElementById('nextLevelBtn').style.display =
+        (state.levelIdx < LEVELS.length-1) ? 'inline-block' : 'none';
+    }
+  } else {
+    sidePanel.style.display = '';
+    controlBanner.classList.remove('hide');
+    boardPanel.classList.remove('win');
+    winBanner.classList.remove('show');
+    clearWinIcons();
+    showControlIcons();
+  }
+}
+
 function checkWin(){
   if(state.occupied.size === state.cells.length){
     state.won = true;
-    document.getElementById('pieceArea').style.display = 'none';
-    document.getElementById('winBanner').classList.add('show');
-    document.getElementById('boardPanel').classList.add('win');
-    document.getElementById('nextLevelBtn').style.display =
-      (state.levelIdx < LEVELS.length-1) ? 'inline-block' : 'none';
+    updateWinUI(true);
+    sfxWin();
+    pushState();
     announce('Hive complete. Every cell filled.');
   }
 }
 
-// Wires a handler to the access-click event on an inner element's wrapping
-// <access-button>. access-button forwards a native click on itself (bubbled
-// up from the inner button) into access-click, and dwell / switch scan / eye
-// gaze all trigger access-click too — so this one listener covers every
-// input method without double-firing on an ordinary mouse click.
 function wireAccessButton(innerId, handler){
   const inner = document.getElementById(innerId);
   const wrapper = inner.closest('access-button');
@@ -846,14 +1278,10 @@ function wireAccessButton(innerId, handler){
 
 wireAccessButton('rotateBtn', rotateSelected);
 wireAccessButton('flipBtn', flipSelected);
-wireAccessButton('exitBtn', ()=> loadLevel(0));
-wireAccessButton('resetBtn', ()=> loadLevel(state.levelIdx));
-wireAccessButton('playAgainBtn', ()=> loadLevel(state.levelIdx));
-wireAccessButton('nextLevelBtn', ()=>{
-  if(state.levelIdx < LEVELS.length-1) loadLevel(state.levelIdx+1);
-});
+wireAccessButton('playAgainBtn', doPlayAgain);
+wireAccessButton('nextLevelBtn', doNextLevel);
 
-loadLevel(0);
+initMultiplayerSync();
 </script>
 </body>
 </html>
