@@ -484,8 +484,7 @@
     margin: 0;
   }
   .homepage-start{
-    font-size: 1rem;
-    padding: 0.75rem 2rem;
+    width: 9rem;
     margin-top: 0.5rem;
   }
 </style>
@@ -501,7 +500,20 @@
       <h1 class="homepage-title">HexNest</h1>
       <p class="homepage-text">Fit every glowing piece into the honeycomb board to complete the hive. Pick a piece from the tray, rotate or flip it until it matches an empty space, then place it on the board.</p>
       <access-button access-group="start" access-order="1">
-        <button class="btn primary homepage-start" id="startGameBtn">Start Game</button>
+        <button class="grid-icon action homepage-start" id="startGameBtn" aria-label="Start Game">
+          <svg class="card-icon" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+            <path class="card" d="M14 6 H86 A8 8 0 0 1 94 14 V86 A8 8 0 0 1 86 94 H14 A8 8 0 0 1 6 86 V14 A8 8 0 0 1 14 6 Z"/>
+            <path class="outline" d="M14 6 H86 A8 8 0 0 1 94 14 V86 A8 8 0 0 1 86 94 H14 A8 8 0 0 1 6 86 V14 A8 8 0 0 1 14 6 Z"/>
+          </svg>
+          <div class="content">
+            <div class="symbol">
+              <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                <path d="M8 5v14l11-7z"/>
+              </svg>
+            </div>
+            <div class="display-value">Start Game</div>
+          </div>
+        </button>
       </access-button>
     </div>
   </div>
