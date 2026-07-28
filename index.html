@@ -8,6 +8,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 
 <script type="module" src="./squidly-access-lib.js"></script>
+<script src="./level-logic.js"></script>
 <style>
   :root{
     --bg: #000000;
@@ -39,7 +40,7 @@
   .wrap{
     margin: 0 auto;
     height: 100vh;
-    padding: 2rem 1.25rem;
+    padding: 7px;
     display: flex;
     flex-direction: column;
     overflow: hidden;
@@ -52,7 +53,7 @@
 
   .game{
     display:grid;
-    grid-template-columns: 20% 47% 33%;
+    grid-template-columns: 2fr 5fr 3fr;
     grid-template-areas: "spacer board side";
     gap: 1rem;
     align-items: stretch;
@@ -75,7 +76,7 @@
     margin-left: 2%;
     margin-right: 2%;
   }
-  @media (max-width: 48.75rem){
+  /* @media (max-width: 48.75rem){
     .game{
       grid-template-columns: 1fr;
       grid-template-areas:
@@ -87,7 +88,7 @@
     .board-panel.win{
       grid-column: auto;
     }
-  }
+  } */
 
   .board-panel{
     grid-area: board;
@@ -224,6 +225,30 @@
     --icon-color-hover: white;
     --text:   white;
     --outline: hsl(11, 100%, 15%);
+  }
+
+  /* .homepage-start {
+    --main:        rgb(255, 214, 79);
+    --tab:         rgb(255, 193, 7);
+    --main-hover:  rgb(255, 193, 7);
+    --tab-hover:   rgb(255, 171, 0);
+    --main-active: rgb(245, 170, 0);
+    --tab-active:  rgb(204, 116, 0);
+    --icon-color:  rgb(33, 27, 6);
+    --icon-color-hover: rgb(33, 27, 6);
+    --outline:     rgba(117, 75, 0, 0.8);
+
+    color: #231b06;
+
+    
+  } */
+  .homepage-start:hover{
+    transform: translateY(-0.0625rem);
+    /* border-color: #FFB300;
+    box-shadow: 0 0 1rem rgba(255, 193, 7, 0.45); */
+  }
+  .homepage-start:active{
+    transform: scale(0.97);
   }
 
   .grid-icon.normal {
@@ -417,7 +442,16 @@
   .piece-btn svg{ width: 100%; height: 100%; pointer-events: none; }
 
   .empty-tray{
-    color: var(--text-dim); font-size: 0.84375rem; padding: 1.25rem 0.25rem; text-align:center;
+    color: var(--text-dim);
+    font-size: 2rem;
+    padding: 1.25rem 0.25rem;
+    text-align: center;
+    grid-column: 1 / -1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    min-height: 100%;
   }
 
   .toast{
@@ -454,38 +488,122 @@
     display:flex;
     align-items:center;
     justify-content:center;
-    padding: 1.5rem;
+    padding: 1.5em;
+    font-size: clamp(1.4em, 2.5vw, 2.4em);
   }
   .homepage.hide{ display:none; }
   .homepage-card{
-    width: 100%;
-    max-width: 24rem;
+    width: min(100%, 42em);
+    max-height: calc(100vh - 3em);
+    overflow-y: auto;
     text-align: center;
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 1rem;
+    gap: 1em;
+    padding: 0.75em;
+    box-sizing: border-box;
   }
   .homepage-art{
     width: 70%;
-    max-width: 14rem;
+    max-width: 14em;
+    display: block;
+    margin: 0 auto;
   }
   .homepage-title{
     font-family: 'Baloo 2', sans-serif;
-    font-size: 1.625rem;
+    font-size: 1.625em;
     font-weight: 800;
     color: var(--honey);
     margin: 0;
   }
   .homepage-text{
     color: var(--text-dim);
-    font-size: 0.875rem;
+    font-size: 0.875em;
     line-height: 1.5;
     margin: 0;
   }
   .homepage-start{
-    width: 9rem;
-    margin-top: 0.5rem;
+    width: 9em;
+    margin-top: 0.5em;
+
+    --text: #231b06;
+
+
+    --main:        rgb(255, 214, 79);
+    --tab:         rgb(255, 193, 7);
+    --main-hover:  rgb(255, 193, 7);
+    --tab-hover:   rgb(255, 171, 0);
+    --main-active: rgb(245, 170, 0);
+    --tab-active:  rgb(204, 116, 0);
+    --icon-color:  rgb(33, 27, 6);
+    --icon-color-hover: rgb(33, 27, 6);
+    --outline:     rgba(117, 75, 0, 0.8);
+    --main-color: var(--main);
+    --tab-color: var(--tab);
+  }
+  .homepage-start .card-icon .card {
+    fill: var(--main-color) !important;
+  }
+  .homepage-start .card-icon .tab {
+    fill: var(--tab-color) !important;
+  }
+  .homepage-levels{
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 1em;
+    margin-top: 1em;
+    width: 100%;
+    padding: 0 2em;
+  }
+  .homepage-level-card{
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.75em;
+  }
+  .homepage-level-button{
+    border: 0.0625em solid var(--line);
+    border-radius: 1em;
+    background: #4f1d5f;
+    padding: 0.5em 0;
+    width: 100%;
+    cursor: pointer;
+    color: #fff;
+    text-align: center;
+    overflow: hidden;
+    transition: transform .12s ease, border-color .12s ease, background .12s ease;
+  }
+  .homepage-level-button:hover{
+    transform: translateY(-0.0625rem);
+    border-color: #6f3b8a;
+    background: #5f2a70;
+  }
+  .homepage-level-art{
+    width: 90%;
+    max-width: 11em;
+    display: block;
+    aspect-ratio: 1 / 1;
+    border: none;
+    margin: 0.25em auto 0.5em;
+  }
+  .homepage-level-label{
+    padding: 0.5em 0.75em 0.85em;
+    font-weight: 700;
+    font-size: 1.625em;
+    color: var(--text);
+    background: rgba(0,0,0,0.15);
+  }
+  /* @media (max-width: 48.75rem) {
+    .homepage-levels{
+      grid-template-columns: 1fr;
+    }
+  } */
+  .homepage-start:hover{
+    transform: translateY(-0.0625rem);
+  }
+  .homepage-start:active{
+    transform: scale(0.97);
   }
 </style>
 </head>
@@ -498,23 +616,37 @@
     <div class="homepage-card">
       <svg class="homepage-art" id="homepageArt" viewBox="0 0 100 100"></svg>
       <h1 class="homepage-title">HexNest</h1>
-      <p class="homepage-text">Fit every glowing piece into the honeycomb board to complete the hive. Pick a piece from the tray, rotate or flip it until it matches an empty space, then place it on the board.</p>
-      <access-button access-group="start" access-order="1">
-        <button class="grid-icon action homepage-start" id="startGameBtn" aria-label="Start Game">
-          <svg class="card-icon" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-            <path class="card" d="M14 6 H86 A8 8 0 0 1 94 14 V86 A8 8 0 0 1 86 94 H14 A8 8 0 0 1 6 86 V14 A8 8 0 0 1 14 6 Z"/>
-            <path class="outline" d="M14 6 H86 A8 8 0 0 1 94 14 V86 A8 8 0 0 1 86 94 H14 A8 8 0 0 1 6 86 V14 A8 8 0 0 1 14 6 Z"/>
-          </svg>
-          <div class="content">
-            <div class="symbol">
-              <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-                <path d="M8 5v14l11-7z"/>
-              </svg>
-            </div>
-            <div class="display-value">Start Game</div>
-          </div>
-        </button>
-      </access-button>
+      <p class="homepage-text">
+        Fit every glowing piece into the honeycomb board to <br> 
+        complete the hive. Pick a piece from the tray, rotate <br> 
+        or flip it until it matches an empty space, <br>
+        then place it on the board.</p>
+      <div class="homepage-levels">
+        <div class="homepage-level-card">
+          <access-button access-group="start" access-order="1">
+            <button class="homepage-level-button" id="levelBtn0" aria-label="Start Level 1">
+              <svg class="homepage-level-art" id="homepageArt0" viewBox="0 0 100 100"></svg>
+              <div class="homepage-level-label">Level 1</div>
+            </button>
+          </access-button>
+        </div>
+        <div class="homepage-level-card">
+          <access-button access-group="start" access-order="2">
+            <button class="homepage-level-button" id="levelBtn1" aria-label="Start Level 2">
+              <svg class="homepage-level-art" id="homepageArt1" viewBox="0 0 100 100"></svg>
+              <div class="homepage-level-label">Level 2</div>
+            </button>
+          </access-button>
+        </div>
+        <div class="homepage-level-card">
+          <access-button access-group="start" access-order="3">
+            <button class="homepage-level-button" id="levelBtn2" aria-label="Start Level 3">
+              <svg class="homepage-level-art" id="homepageArt2" viewBox="0 0 100 100"></svg>
+              <div class="homepage-level-label">Level 3</div>
+            </button>
+          </access-button>
+        </div>
+      </div>
     </div>
   </div>
 
@@ -666,6 +798,7 @@ function sfxWin(){
 }
 
 const hasSquidlyAPILogPrefix = '[HexNest sync]';
+const STORAGE_KEY = 'hexnest-game-state-v1';
 let hasSquidlyAPI = false;
 let isApplyingRemote = false;
 let receivedRemoteOnce = false;
@@ -673,6 +806,7 @@ let receivedRemoteOnce = false;
 function serializeState(){
   return JSON.stringify({
     levelIdx: state.levelIdx,
+    screen: gameStarted ? 'game' : 'home',
     won: state.won,
     selectedId: state.selectedId,
     pieces: state.pieces.map(p => ({
@@ -684,8 +818,32 @@ function serializeState(){
   });
 }
 
+function persistLocalState(){
+  if(!state) return;
+  try{
+    localStorage.setItem(STORAGE_KEY, serializeState());
+  }catch(e){
+    console.warn(hasSquidlyAPILogPrefix, 'localStorage save failed', e);
+  }
+}
+
+function restorePersistedState(){
+  try{
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if(!raw) return null;
+    const data = JSON.parse(raw);
+    if(!data || typeof data.levelIdx !== 'number' || !Array.isArray(data.pieces)) return null;
+    return data;
+  }catch(e){
+    console.warn(hasSquidlyAPILogPrefix, 'localStorage restore failed', e);
+    return null;
+  }
+}
+
 function pushState(){
-  if(!hasSquidlyAPI || isApplyingRemote || !state) return;
+  if(!state) return;
+  persistLocalState();
+  if(!hasSquidlyAPI || isApplyingRemote) return;
   try{
     const payload = serializeState();
     SquidlyAPI.firebaseSet('game/state', payload);
@@ -711,14 +869,24 @@ function applyRemoteState(raw){
   if(!data || typeof data.levelIdx !== 'number' || !Array.isArray(data.pieces)) return;
 
   isApplyingRemote = true;
-  const levelChanged = !state || state.levelIdx !== data.levelIdx;
+  const normalized = window.levelLogic && typeof window.levelLogic.normalizeSharedGameState === 'function'
+    ? window.levelLogic.normalizeSharedGameState(data, {
+        levelIdx: state ? state.levelIdx : 0,
+        screen: gameStarted ? 'game' : 'home',
+        won: state ? state.won : false,
+        selectedId: state ? state.selectedId : null,
+        pieces: []
+      })
+    : data;
+
+  const levelChanged = !state || state.levelIdx !== normalized.levelIdx;
   const wasWon = state ? state.won : false;
 
   if(levelChanged){
-    loadLevel(data.levelIdx); 
+    loadLevel(normalized.levelIdx);
   }
 
-  data.pieces.forEach((pd,i)=>{
+  normalized.pieces.forEach((pd,i)=>{
     const piece = state.pieces[i];
     if(!piece) return;
     piece.rotation = pd.rotation;
@@ -726,13 +894,20 @@ function applyRemoteState(raw){
     piece.placed = pd.placed;
     piece.anchor = pd.anchor;
   });
-  state.selectedId = (typeof data.selectedId === 'number' && state.pieces[data.selectedId]) ? data.selectedId : null;
+  state.selectedId = (typeof normalized.selectedId === 'number' && state.pieces[normalized.selectedId]) ? normalized.selectedId : null;
   rebuildOccupiedFromPieces();
-  state.won = !!data.won;
+  state.won = !!normalized.won;
+  gameStarted = normalized.screen === 'game';
+  if(gameStarted){
+    document.getElementById('homepage').classList.add('hide');
+  } else {
+    document.getElementById('homepage').classList.remove('hide');
+  }
 
   renderBoard();
   renderTray();
   updateControls();
+  persistLocalState();
 
   updateWinUI(state.won);
   if(state.won && !wasWon) sfxWin();
@@ -743,6 +918,16 @@ function initMultiplayerSync(){
   const POLL_MS = 50;
   const TIMEOUT_MS = 6000;
   const startedAt = Date.now();
+  const persisted = restorePersistedState();
+
+  if(persisted){
+    const normalized = window.levelLogic && typeof window.levelLogic.normalizeSharedGameState === 'function'
+      ? window.levelLogic.normalizeSharedGameState(persisted, { levelIdx: 0, screen: 'home', won: false, selectedId: null, pieces: [] })
+      : persisted;
+    const currentLevel = normalized.levelIdx;
+    loadLevel(currentLevel);
+    applyRemoteState(JSON.stringify(normalized));
+  }
 
   (function waitForApi(){
     if(window.SquidlyAPI){
@@ -754,7 +939,17 @@ function initMultiplayerSync(){
     if(Date.now() - startedAt >= TIMEOUT_MS){
       hasSquidlyAPI = false;
       console.log(hasSquidlyAPILogPrefix, 'SquidlyAPI not found after', TIMEOUT_MS, 'ms — running single-player (local dev without the Squidly platform wrapper)');
-      loadLevel(0);
+      if(!state){
+        const persisted = restorePersistedState();
+        const normalized = persisted && window.levelLogic && typeof window.levelLogic.normalizeSharedGameState === 'function'
+          ? window.levelLogic.normalizeSharedGameState(persisted, { levelIdx: 0, screen: 'home', won: false, selectedId: null, pieces: [] })
+          : null;
+        if(normalized){
+          applyRemoteState(JSON.stringify(normalized));
+        } else {
+          loadLevel(0);
+        }
+      }
       return;
     }
     setTimeout(waitForApi, POLL_MS);
@@ -909,12 +1104,18 @@ let gameStarted = false;
 
 function makePieceState(levelIdx){
   const lvl = LEVELS[levelIdx];
+  const forcedFlips = {
+    l2: [0],
+    l3: [0, 2]
+  };
+  const flippedIds = new Set(forcedFlips[lvl.key] || []);
+
   return lvl.pieces.map((cells,i)=>({
     id: i,
     base: cells,
     color: PALETTE[i % PALETTE.length],
     rotation: 0,
-    flip: false,
+    flip: flippedIds.has(i),
     placed: false,
     anchor: null 
   }));
@@ -1045,6 +1246,33 @@ function renderBoardPreview(svg, idx){
   });
 }
 
+function renderHomeHeroArtwork(){
+  const svg = document.getElementById('homepageArt');
+  if(!svg) return;
+
+  svg.innerHTML = `
+    <defs>
+      <linearGradient id="heroGlow" x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%" stop-color="#2f1b3d" />
+        <stop offset="100%" stop-color="#0b0b0b" />
+      </linearGradient>
+    </defs>
+    <circle cx="50" cy="50" r="42" fill="url(#heroGlow)" />
+    <circle cx="50" cy="50" r="33" fill="none" stroke="#FFC72C" stroke-width="2.2" opacity="0.9" />
+    <g transform="translate(50 50)">
+      <polygon points="0,-24 20.8,-12 20.8,12 0,24 -20.8,12 -20.8,-12" fill="#FFC72C" stroke="#FFE08A" stroke-width="2.2" />
+      <polygon points="-14,-7 -6,-7 -6,7 -14,7" fill="#121212" />
+      <polygon points="6,-7 14,-7 14,7 6,7" fill="#121212" />
+      <polygon points="-4,-2 4,-2 4,2 -4,2" fill="#FFFFFF" opacity="0.95" />
+      <circle cx="-15" cy="-15" r="4.4" fill="#FF5C39" />
+      <circle cx="15" cy="-15" r="4.4" fill="#2ECC71" />
+      <circle cx="15" cy="15" r="4.4" fill="#00C2D1" />
+      <circle cx="-15" cy="15" r="4.4" fill="#7B2FFF" />
+    </g>
+  `;
+  svg.setAttribute('viewBox', '0 0 100 100');
+}
+
 function renderTargetPreview(idx){
   renderBoardPreview(document.getElementById('targetSvg'), idx);
 }
@@ -1086,7 +1314,8 @@ function renderTray(){
   if(unplaced.length===0){
     const div = document.createElement('div');
     div.className = 'empty-tray';
-    div.textContent = 'All pieces placed!';
+    div.textContent = 'All pieces placed! Make sure they match the target pattern.';
+    
     tray.appendChild(div);
     return;
   }
@@ -1290,10 +1519,15 @@ function showControlIcons(){
     type: "normal"
   }, ()=> rotateSelected()));
   controlIconKeys.push(SquidlyAPI.setIcon(2, 0, {
-    symbol: "flip",
+    symbol: "reflect",
     displayValue: "Flip",
-    type: "action"
+    type: "normal"
   }, ()=> flipSelected()));
+  controlIconKeys.push(SquidlyAPI.setIcon(3, 0, {
+    symbol: "home",
+    displayValue: "Home",
+    type: "normal"
+  }, ()=> goHome()));
 }
 
 function updateWinUI(won){
@@ -1332,12 +1566,17 @@ function updateWinUI(won){
 }
 
 function checkWin(){
-  if(state.occupied.size === state.cells.length){
+  const solution = getSolution(state.levelIdx);
+  const solved = solution && window.levelLogic && typeof window.levelLogic.isLevelSolved === 'function'
+    ? window.levelLogic.isLevelSolved({ cells: state.cells }, state.pieces, solution, key)
+    : false;
+
+  if(solved){
     state.won = true;
     updateWinUI(true);
     sfxWin();
     pushState();
-    announce('Hive complete. Every cell filled.');
+    announce('The hive matches the target pattern.');
   }
 }
 
@@ -1352,12 +1591,37 @@ function startGame(){
   homepage.classList.add('hide');
   gameStarted = true;
   if(state) updateWinUI(state.won);
+  pushState();
   announce('Game started.');
 }
 
-renderBoardPreview(document.getElementById('homepageArt'), 0);
+function startLevel(levelIdx){
+  loadLevel(levelIdx);
+  const homepage = document.getElementById('homepage');
+  homepage.classList.add('hide');
+  gameStarted = true;
+  if(state) updateWinUI(state.won);
+  pushState();
+  announce(`Level ${levelIdx + 1} started.`);
+}
 
-wireAccessButton('startGameBtn', startGame);
+function goHome(){
+  const homepage = document.getElementById('homepage');
+  homepage.classList.remove('hide');
+  gameStarted = false;
+  if(state) updateWinUI(state.won);
+  pushState();
+  announce('Returned to home.');
+}
+
+renderHomeHeroArtwork();
+renderBoardPreview(document.getElementById('homepageArt0'), 0);
+renderBoardPreview(document.getElementById('homepageArt1'), 1);
+renderBoardPreview(document.getElementById('homepageArt2'), 2);
+
+wireAccessButton('levelBtn0', ()=> startLevel(0));
+wireAccessButton('levelBtn1', ()=> startLevel(1));
+wireAccessButton('levelBtn2', ()=> startLevel(2));
 wireAccessButton('rotateBtn', rotateSelected);
 wireAccessButton('flipBtn', flipSelected);
 wireAccessButton('playAgainBtn', doPlayAgain);
