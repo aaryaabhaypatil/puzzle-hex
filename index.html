@@ -658,6 +658,9 @@
       <access-button access-group="controls" access-order="4">
         <button class="btn" id="flipBtn" disabled>Flip</button>
       </access-button>
+      <access-button access-group="controls" access-order="2">
+        <button class="btn" id="homeBtn">Home</button>
+      </access-button>
     </div>
 
     <div class="board-panel" id="boardPanel">
@@ -925,10 +928,6 @@ function initMultiplayerSync(){
       ? window.levelLogic.normalizeSharedGameState(persisted, { levelIdx: 0, screen: 'home', won: false, selectedId: null, pieces: [] })
       : persisted;
     const currentLevel = normalized.levelIdx;
-    // If the persisted state indicates the game screen but there are
-    // no placed pieces and the level isn't won, prefer showing the
-    // homepage rather than auto-entering a level on load. This avoids
-    // unintentionally starting a level when the saved state is empty.
     const hasPlaced = Array.isArray(normalized.pieces) && normalized.pieces.some(p => p && p.placed);
     if(normalized.screen === 'game' && !hasPlaced && !normalized.won){
       normalized.screen = 'home';
@@ -1645,6 +1644,7 @@ wireAccessButton('rotateBtn', rotateSelected);
 wireAccessButton('flipBtn', flipSelected);
 wireAccessButton('playAgainBtn', doPlayAgain);
 wireAccessButton('nextLevelBtn', doNextLevel);
+wireAccessButton('homeBtn', goHome);
 
 initMultiplayerSync();
 </script>
