@@ -1600,8 +1600,25 @@ function checkWin(){
 
 function wireAccessButton(innerId, handler){
   const inner = document.getElementById(innerId);
-  const wrapper = inner.closest('access-button');
-  if(wrapper) wrapper.addEventListener('access-click', handler);
+  if(!inner) return;
+  const wrapper = inner.closest && inner.closest('access-button');
+  if(wrapper){
+    wrapper.addEventListener('access-click', handler);
+    // keep wrapper disabled state in sync if inner uses `disabled`
+    try{
+      const obs = new MutationObserver(()=>{
+        if(inner.disabled) wrapper.setAttribute('i-disabled',''); else wrapper.removeAttribute('i-disabled');
+      });
+      obs.observe(inner, {attributes:true, attributeFilter:['disabled']});
+      // initialize
+      if(inner.disabled) wrapper.setAttribute('i-disabled',''); else wrapper.removeAttribute('i-disabled');
+    }catch(e){ /* ignore */ }
+  } else {
+    // fallback: attach directly to the inner element for environments where
+    // the access-button wrapper isn't present or isn't upgraded yet.
+    inner.addEventListener('click', handler);
+    inner.addEventListener('keydown', (e)=>{ if(e.key === 'Enter' || e.key === ' ') handler(); });
+  }
 }
 
 function startGame(){
