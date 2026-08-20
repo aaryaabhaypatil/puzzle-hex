@@ -923,16 +923,13 @@ function initMultiplayerSync(){
   const POLL_MS = 50;
   const TIMEOUT_MS = 6000;
   const startedAt = Date.now();
-  const persisted = restorePersistedState();
 
-  if(persisted){
-    const normalized = window.levelLogic && typeof window.levelLogic.normalizeSharedGameState === 'function'
-      ? window.levelLogic.normalizeSharedGameState(persisted, { levelIdx: 0, screen: 'home', won: false, selectedId: null, pieces: [] })
-      : persisted;
-    const currentLevel = normalized.levelIdx;
-    loadLevel(currentLevel);
-    applyRemoteState(JSON.stringify(normalized));
+  try{ localStorage.removeItem(STORAGE_KEY); }catch(e){
+    console.warn(hasSquidlyAPILogPrefix, 'localStorage reset failed', e);
   }
+  loadLevel(0);
+  gameStarted = false;
+  document.getElementById('homepage').classList.remove('hide');
 
   (function waitForApi(){
     if(window.SquidlyAPI){
@@ -944,17 +941,6 @@ function initMultiplayerSync(){
     if(Date.now() - startedAt >= TIMEOUT_MS){
       hasSquidlyAPI = false;
       console.log(hasSquidlyAPILogPrefix, 'SquidlyAPI not found after', TIMEOUT_MS, 'ms — running single-player (local dev without the Squidly platform wrapper)');
-      if(!state){
-        const persisted = restorePersistedState();
-        const normalized = persisted && window.levelLogic && typeof window.levelLogic.normalizeSharedGameState === 'function'
-          ? window.levelLogic.normalizeSharedGameState(persisted, { levelIdx: 0, screen: 'home', won: false, selectedId: null, pieces: [] })
-          : null;
-        if(normalized){
-          applyRemoteState(JSON.stringify(normalized));
-        } else {
-          loadLevel(0);
-        }
-      }
       return;
     }
     setTimeout(waitForApi, POLL_MS);
@@ -962,6 +948,7 @@ function initMultiplayerSync(){
 }
 
 function startSyncedMode(){
+  pushState();
   SquidlyAPI.firebaseOnValue('game/state', (val)=>{
     receivedRemoteOnce = true;
     console.log(hasSquidlyAPILogPrefix, 'received game/state update:', val);
